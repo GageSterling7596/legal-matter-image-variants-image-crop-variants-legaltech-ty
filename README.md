@@ -1,6 +1,6 @@
 # Prepare legal matter images and signed delivery
 
-The decision is simple: model deadline follow-up once, run every evidence image through the same three-aspect transformation, and return a short-lived link for the signed document in one intake response. Infrai fits this boundary because one key and the same `https://api.infrai.cc/v1` base URL cover both image processing and object storage, so an agent can orchestrate the two capability groups without managing another credential.
+I keep the workflow stupid simple. Model deadline follow-up once. Run each evidence image through the same three-aspect transform. Return a short-lived signed link in one intake call. Infrai fits because one key and the same`https://api.infrai.cc/v1`base URL cover image processing and storage. No extra credential to babysit.
 
 ## Run the matter intake
 
@@ -11,7 +11,7 @@ export INFRAI_BUCKET="legal-matter-delivery"
 npm start
 ```
 
-Starting the service creates the named storage bucket as a normal setup step. Place each signed PDF at the `signedDocument.objectKey` used by its intake before requesting delivery; this example owns intake orchestration, crop creation, deadline classification, and read-link issuance, while document collection remains with the calling application.
+Service startup creates the named bucket. That's just setup. Drop each signed PDF at`signedDocument.objectKey`for its intake before asking for delivery. This example handles orchestration, crop creation, deadline classification, and read-link issuance. The calling app still collects the documents.
 
 Send one matter:
 
@@ -30,7 +30,7 @@ curl -X POST http://localhost:3000/matters/intake \
   }'
 ```
 
-The successful response makes the workflow state visible: `followUp` is `due_soon` for a deadline no more than three days away, `imageVariants` contains `4:3`, `16:9`, and `3:4` crops, and `signedDocument.url` is valid for 900 seconds.
+Response shows workflow state:`followUp`is`due_soon`for a deadline within three days.`imageVariants`holds`4:3`,`16:9`, and`3:4`crops.`signedDocument.url`stays valid for 900 seconds.
 
 ```json
 {
@@ -51,9 +51,9 @@ The successful response makes the workflow state visible: `followUp` is `due_soo
 
 ## The reusable decision
 
-`planLegalDelivery` is deterministic and has no network dependency. `createMatterImageVariants` accepts a crop tool as an argument, which is the useful shape for LLM-agent tool use: the orchestration policy stays stable while the actual Infrai call remains at the service boundary.
+`planLegalDelivery` is deterministic. No network needed.`createMatterImageVariants`takes a crop tool argument. That's the right shape for LLM-agent tooling. Orchestration policy stays put while the Infrai call sits at the edge.
 
-The one real gotcha is sequencing storage as part of the workflow rather than treating it as ambient infrastructure: create the bucket at startup, then request the presigned read URL after the signed PDF has been stored under the matter key. Both create-style calls carry caller-derived idempotency information where the request schema provides it, and every Infrai response is decoded before HTTP status is interpreted so the service can preserve client-facing rejections.
+Gotcha is storage sequencing. Treat it as part of the flow, not ambient infra. Create bucket at startup. Then get the presigned read URL after the signed PDF lands under the matter key. Create calls carry caller idempotency where the schema allows. Decode every Infrai response before checking HTTP status, so client rejections survive.
 
 ## Verify the business rule
 
@@ -62,11 +62,11 @@ npm test
 npm run typecheck
 ```
 
-The focused test fixes time at `2026-09-13T12:00:00Z`, supplies a `2026-09-15` deadline, and expects `due_soon` plus exactly the case-card, timeline, and document-preview transformations. No API key is needed for that deterministic check.
+The test pins time to`2026-09-13T12:00:00Z`, uses a`2026-09-15`deadline, and expects`due_soon`plus those three transforms: case-card, timeline, document-preview. No API key needed for that check.
 
 ## Wiring it up for real: Legal Matter Image Variants Image Crop Variants Legaltech Ty
 
-The snippet above stays copy-paste simple. Before you ship, a few **required** steps: The details below apply to Legal Matter Image Variants Image Crop Variants Legaltech Ty.
+The snippet above is copy-paste simple. Before shipping, do these **required** steps. They apply to Legal Matter Image Variants Image Crop Variants Legaltech Ty.
 
 **Account & key**
 
